@@ -55,9 +55,6 @@ export default class SiderMenu extends PureComponent {
       [styles.light]: theme === 'light',
     });
 
-    console.log(' ************');
-    console.log(this.props, defaultProps);
-
     return (
       <Sider
         trigger={null}

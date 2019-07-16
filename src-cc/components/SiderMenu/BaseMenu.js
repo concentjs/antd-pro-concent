@@ -93,7 +93,6 @@ export default class BaseMenu extends PureComponent {
     }
     const { location, isMobile, onCollapse } = this.props;
 
-    console.log('getMenuItemPath ', itemPath);
     return (
       <Link
         to={itemPath}

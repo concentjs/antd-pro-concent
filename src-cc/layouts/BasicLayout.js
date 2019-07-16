@@ -5,6 +5,7 @@ import isEqual from 'lodash/isEqual';
 import memoizeOne from 'memoize-one';
 // import { connect } from 'dva';
 import { connectDumb } from 'concent';
+import { createHistoryProxy } from 'react-router-concent';
 import { ContainerQuery } from 'react-container-query';
 import classNames from 'classnames';
 import pathToRegexp from 'path-to-regexp';
@@ -52,6 +53,14 @@ const query = {
 };
 
 const setup = ctx => {
+  /** 接入concent路由，创建history代理, 因BasicLayout是顶层容器，setup只会在容器挂载时执行一次，所以createHistoryProxy放在这里 */
+  createHistoryProxy(ctx.props.history);
+  /** 定义onUrlChanged函数，当路由变化时，强制刷新BasicLayout */
+  ctx.onUrlChanged((params, action)=>{
+    console.log(`%c onUrlChanged ${action} ${JSON.stringify(params)}`, 'color:red');
+    ctx.forceUpdate();
+  });
+
   const getPageTitle = memoizeOne((pathname, breadcrumbNameMap) => {
     const currRouterData = matchParamsPath(pathname, breadcrumbNameMap);
 
@@ -166,7 +175,7 @@ const BasicLayout = props => {
 
   const isTop = PropsLayout === 'topmenu';
   const routerConfig = props.getRouterAuthority(pathname, routes);
-  console.log('------>>>routerConfig ', routerConfig);
+  console.log('------>>>props ', props);
   const contentStyle = !fixedHeader ? { paddingTop: 0 } : {};
   const layout = (
     <Layout>
@@ -221,7 +230,7 @@ const BasicLayout = props => {
 export default connectDumb({
   setup,
   mapProps,
-  connect: { $$global: ['collapsed'], user: '*', setting: '*', menu: ['menuData', 'breadcrumbNameMap'] }
+  connect: { $$global: ['collapsed'], setting: '*', menu: ['menuData', 'breadcrumbNameMap'] }
 })(props => (
   <Media query="(max-width: 599px)">
     {isMobile => <BasicLayout {...props} isMobile={isMobile} />}

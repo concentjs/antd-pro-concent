@@ -1,18 +1,25 @@
 import React, { PureComponent } from 'react';
-import { connect } from 'dva';
+// import { connect } from 'dva';
+import { connect } from 'concent';
 import Link from 'umi/link';
-import router from 'umi/router';
+// import router from 'umi/router';
+import { history } from 'react-router-concent';
 import { Card, Row, Col, Icon, Avatar, Tag, Divider, Spin, Input } from 'antd';
 import GridContent from '@/components/PageHeaderWrapper/GridContent';
 import styles from './Center.less';
 
-@connect(({ loading, user, project }) => ({
-  listLoading: loading.effects['list/fetch'],
-  currentUser: user.currentUser,
-  currentUserLoading: loading.effects['user/fetchCurrent'],
-  project,
-  projectLoading: loading.effects['project/fetchNotice'],
-}))
+// @connect(({ loading, user, project }) => ({
+//   listLoading: loading.effects['list/fetch'],
+//   currentUser: user.currentUser,
+//   currentUserLoading: loading.effects['user/fetchCurrent'],
+//   project,
+//   projectLoading: loading.effects['project/fetchNotice'],
+// }))
+@connect('AccountCenter', {
+  loading: ['list/fetch', 'user/fetchCurrent', 'project/fetchNotice'],
+  user: ['currentUser'],
+  project: '*'
+})
 class Center extends PureComponent {
   state = {
     newTags: [],
@@ -21,32 +28,28 @@ class Center extends PureComponent {
   };
 
   componentDidMount() {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'user/fetchCurrent',
-    });
-    dispatch({
-      type: 'list/fetch',
-      payload: {
-        count: 8,
-      },
-    });
-    dispatch({
-      type: 'project/fetchNotice',
-    });
+    this.$$dispatch('user/fetchCurrent');
+    this.$$dispatch('list/fetch', { count: 8 });
+    this.$$dispatch('project/fetchNotice');
+  }
+
+  /** 配合react-router-concent, 路由变化时，concentRouter会触发实现了onUrlChanged回调的组件去执行对应逻辑 */
+  $$onUrlChanged(){
+    this.forceUpdate();
   }
 
   onTabChange = key => {
     const { match } = this.props;
+    console.log(history);
     switch (key) {
       case 'articles':
-        router.push(`${match.url}/articles`);
+        history.push(`${match.url}/articles`);
         break;
       case 'applications':
-        router.push(`${match.url}/applications`);
+        history.push(`${match.url}/applications`);
         break;
       case 'projects':
-        router.push(`${match.url}/projects`);
+        history.push(`${match.url}/projects`);
         break;
       default:
         break;
@@ -81,16 +84,13 @@ class Center extends PureComponent {
 
   render() {
     const { newTags, inputVisible, inputValue } = this.state;
+    const { loading, project: { notice }, user: { currentUser } } = this.$$connectedState;
     const {
-      listLoading,
-      currentUser,
-      currentUserLoading,
-      project: { notice },
-      projectLoading,
-      match,
-      location,
-      children,
-    } = this.props;
+      'list/fetch': listLoading,
+      'user/fetchCurrent': currentUserLoading,
+      'project/fetchNotice': projectLoading
+    } = loading;
+    const { match, location, children } = this.props;
 
     const operationTabList = [
       {
@@ -191,8 +191,8 @@ class Center extends PureComponent {
                   </div>
                 </div>
               ) : (
-                'loading...'
-              )}
+                  'loading...'
+                )}
             </Card>
           </Col>
           <Col lg={17} md={24}>
