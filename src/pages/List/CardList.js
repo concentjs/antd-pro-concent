@@ -1,5 +1,6 @@
-import React, { PureComponent } from 'react';
-import { connect } from 'dva';
+import React from 'react';
+// import { connect } from 'dva';
+import { connect } from 'concent';
 import { Card, Button, Icon, List } from 'antd';
 
 import Ellipsis from '@/components/Ellipsis';
@@ -7,26 +8,21 @@ import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 
 import styles from './CardList.less';
 
-@connect(({ list, loading }) => ({
-  list,
-  loading: loading.models.list,
-}))
-class CardList extends PureComponent {
+@connect(
+  'CardList',
+  { list: '*', loading: ['list/*'] }
+)
+class CardList extends React.Component {
   componentDidMount() {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'list/fetch',
-      payload: {
-        count: 8,
-      },
-    });
+    this.$$dispatch('list/fetch', { count: 8 });
   }
 
   render() {
     const {
       list: { list },
-      loading,
-    } = this.props;
+      loading: listLoading,
+    } = this.$$connectedState;
+    const loading = listLoading['list/*'];
 
     const content = (
       <div className={styles.pageHeaderContent}>

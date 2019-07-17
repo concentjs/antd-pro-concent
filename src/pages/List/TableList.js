@@ -1,5 +1,6 @@
 import React, { PureComponent, Fragment } from 'react';
-import { connect } from 'dva';
+// import { connect } from 'dva';
+import { connect } from 'concent';
 import moment from 'moment';
 import {
   Row,
@@ -273,21 +274,13 @@ class UpdateForm extends PureComponent {
 }
 
 /* eslint react/no-multi-comp:0 */
-@connect(({ rule, loading }) => ({
-  rule,
-  loading: loading.models.rule,
-}))
+@connect(
+  'TableList',
+  { rule: '*', loading: ['rule/*'] },
+  { isPropsProxy: true }
+)
 @Form.create()
-class TableList extends PureComponent {
-  state = {
-    modalVisible: false,
-    updateModalVisible: false,
-    expandForm: false,
-    selectedRows: [],
-    formValues: {},
-    stepFormValues: {},
-  };
-
+class TableList extends React.Component {
   columns = [
     {
       title: '规则名称',
@@ -349,15 +342,25 @@ class TableList extends PureComponent {
     },
   ];
 
+  constructor(props, context) {
+    super(props, context);
+    this.state = {
+      modalVisible: false,
+      updateModalVisible: false,
+      expandForm: false,
+      selectedRows: [],
+      formValues: {},
+      stepFormValues: {},
+    };
+    const { $$attach } = props;
+    $$attach(this);
+  }
+
   componentDidMount() {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'rule/fetch',
-    });
+    this.$$dispatch('rule/fetch');
   }
 
   handleStandardTableChange = (pagination, filtersArg, sorter) => {
-    const { dispatch } = this.props;
     const { formValues } = this.state;
 
     const filters = Object.keys(filtersArg).reduce((obj, key) => {
@@ -376,22 +379,16 @@ class TableList extends PureComponent {
       params.sorter = `${sorter.field}_${sorter.order}`;
     }
 
-    dispatch({
-      type: 'rule/fetch',
-      payload: params,
-    });
+    this.$$dispatch('rule/fetch', params);
   };
 
   handleFormReset = () => {
-    const { form, dispatch } = this.props;
+    const { form } = this.props;
     form.resetFields();
     this.setState({
       formValues: {},
     });
-    dispatch({
-      type: 'rule/fetch',
-      payload: {},
-    });
+    this.$$dispatch('rule/fetch', {});
   };
 
   toggleForm = () => {
@@ -402,14 +399,12 @@ class TableList extends PureComponent {
   };
 
   handleMenuClick = e => {
-    const { dispatch } = this.props;
     const { selectedRows } = this.state;
 
     if (selectedRows.length === 0) return;
     switch (e.key) {
       case 'remove':
-        dispatch({
-          type: 'rule/remove',
+        this.$$dispatch('rule/remove', {
           payload: {
             key: selectedRows.map(row => row.key),
           },
@@ -434,7 +429,7 @@ class TableList extends PureComponent {
   handleSearch = e => {
     e.preventDefault();
 
-    const { dispatch, form } = this.props;
+    const { form } = this.props;
 
     form.validateFields((err, fieldsValue) => {
       if (err) return;
@@ -448,10 +443,7 @@ class TableList extends PureComponent {
         formValues: values,
       });
 
-      dispatch({
-        type: 'rule/fetch',
-        payload: values,
-      });
+      this.$$dispatch('rule/fetch', values);
     });
   };
 
@@ -469,27 +461,17 @@ class TableList extends PureComponent {
   };
 
   handleAdd = fields => {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'rule/add',
-      payload: {
-        desc: fields.desc,
-      },
-    });
+    this.$$dispatch('rule/add', { desc: fields.desc });
 
     message.success('添加成功');
     this.handleModalVisible();
   };
 
   handleUpdate = fields => {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'rule/update',
-      payload: {
-        name: fields.name,
-        desc: fields.desc,
-        key: fields.key,
-      },
+    this.$$dispatch('rule/update', {
+      name: fields.name,
+      desc: fields.desc,
+      key: fields.key,
     });
 
     message.success('配置成功');
@@ -618,8 +600,9 @@ class TableList extends PureComponent {
   render() {
     const {
       rule: { data },
-      loading,
-    } = this.props;
+      loading: ruleLoading,
+    } = this.$$connectedState;
+    const loading = ruleLoading['rule/*'];
     const { selectedRows, modalVisible, updateModalVisible, stepFormValues } = this.state;
     const menu = (
       <Menu onClick={this.handleMenuClick} selectedKeys={[]}>

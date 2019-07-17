@@ -91,6 +91,7 @@ class Center extends PureComponent {
       location,
       children,
     } = this.props;
+    console.log('%c@@@ Account/Center', 'color:green;border:1px solid green;');
 
     const operationTabList = [
       {

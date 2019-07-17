@@ -1,6 +1,7 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
 import numeral from 'numeral';
-import { connect } from 'dva';
+// import { connect } from 'dva';
+import { connect } from 'concent';
 import { Row, Col, Form, Card, Select, Icon, Avatar, List, Tooltip, Dropdown, Menu } from 'antd';
 import TagSelect from '@/components/TagSelect';
 import StandardFormRow from '@/components/StandardFormRow';
@@ -12,42 +13,44 @@ import styles from './Applications.less';
 const { Option } = Select;
 const FormItem = Form.Item;
 
-@connect(({ list, loading }) => ({
-  list,
-  loading: loading.models.list,
-}))
+// @connect(({ list, loading }) => ({
+//   list,
+//   loading: loading.models.list,
+// }))
+@connect(
+  'CoverCardList',
+  { list: '*', loading: ['list/*'] },
+  { isPropsProxy: true }
+)
 @Form.create({
-  onValuesChange({ dispatch }, changedValues, allValues) {
+  onValuesChange(props, changedValues, allValues) {
     // 表单项变化时请求数据
     // eslint-disable-next-line
     console.log(changedValues, allValues);
     // 模拟查询表单生效
-    dispatch({
-      type: 'list/fetch',
-      payload: {
-        count: 8,
-      },
-    });
+    // 模拟查询表单生效
+    props.$$dispatch('list/fetch', { count: 8 });
   },
 })
-class FilterCardList extends PureComponent {
+class FilterCardList extends React.Component {
+  constructor(props, context) {
+    super(props, context);
+    const { $$attach } = props;
+    $$attach(this);
+  }
+
   componentDidMount() {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'list/fetch',
-      payload: {
-        count: 8,
-      },
-    });
+    this.$$dispatch('list/fetch', { count: 8 });
   }
 
   render() {
     const {
       list: { list },
-      loading,
-      form,
-    } = this.props;
+      loading: loadingState,
+    } = this.$$connectedState;
+    const { form } = this.props;
     const { getFieldDecorator } = form;
+    const loading = loadingState['list/*'];
 
     const CardInfo = ({ activeUser, newUser }) => (
       <div className={styles.cardInfo}>

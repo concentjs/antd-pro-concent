@@ -4,7 +4,7 @@ import { connect } from 'concent';
 import Link from 'umi/link';
 // import router from 'umi/router';
 import { history } from 'react-router-concent';
-import { Card, Row, Col, Icon, Avatar, Tag, Divider, Spin, Input } from 'antd';
+import { Card, Row, Col, Icon, Avatar, Tag, Divider, Spin, Input, Button } from 'antd';
 import GridContent from '@/components/PageHeaderWrapper/GridContent';
 import styles from './Center.less';
 
@@ -15,11 +15,14 @@ import styles from './Center.less';
 //   project,
 //   projectLoading: loading.effects['project/fetchNotice'],
 // }))
-@connect('AccountCenter', {
-  loading: ['list/fetch', 'user/fetchCurrent', 'project/fetchNotice'],
-  user: ['currentUser'],
-  project: '*'
-})
+@connect(
+  'AccountCenter',
+  {
+    loading: ['list/fetch', 'user/fetchCurrent', 'project/fetchNotice'],
+    user: ['currentUser'],
+    project: '*',
+  }
+)
 class Center extends PureComponent {
   state = {
     newTags: [],
@@ -31,11 +34,6 @@ class Center extends PureComponent {
     this.$$dispatch('user/fetchCurrent');
     this.$$dispatch('list/fetch', { count: 8 });
     this.$$dispatch('project/fetchNotice');
-  }
-
-  /** 配合react-router-concent, 路由变化时，concentRouter会触发实现了onUrlChanged回调的组件去执行对应逻辑 */
-  $$onUrlChanged(){
-    this.forceUpdate();
   }
 
   onTabChange = key => {
@@ -82,15 +80,32 @@ class Center extends PureComponent {
     });
   };
 
+  randomGo = () => {
+    const seed = parseInt(Math.random() * 3, 10);
+    const centerContent = ['articles', 'applications', 'projects'][seed];
+    history.push(`/account/center/${centerContent}`);
+  };
+
+  /** 配合react-router-concent, 路由变化时，concentRouter会触发实现了onUrlChanged回调的组件去执行对应逻辑 */
+  // $$onUrlChanged(params, action) {
+  //   console.log('$$onUrlChanged', params, action);
+  // }
+
   render() {
+    const { match, location, children } = this.props;
+    console.log('%c@@@ Account/Center ', 'color:green;border:1px solid green;');
+    console.log(location.pathname.replace(`${match.path}/`, ''));
     const { newTags, inputVisible, inputValue } = this.state;
-    const { loading, project: { notice }, user: { currentUser } } = this.$$connectedState;
+    const {
+      loading,
+      project: { notice },
+      user: { currentUser },
+    } = this.$$connectedState;
     const {
       'list/fetch': listLoading,
       'user/fetchCurrent': currentUserLoading,
-      'project/fetchNotice': projectLoading
+      'project/fetchNotice': projectLoading,
     } = loading;
-    const { match, location, children } = this.props;
 
     const operationTabList = [
       {
@@ -126,6 +141,7 @@ class Center extends PureComponent {
             <Card bordered={false} style={{ marginBottom: 24 }} loading={currentUserLoading}>
               {currentUser && Object.keys(currentUser).length ? (
                 <div>
+                  <Button onClick={this.randomGo}>switch tab randomly</Button>
                   <div className={styles.avatarHolder}>
                     <img alt="" src={currentUser.avatar} />
                     <div className={styles.name}>{currentUser.name}</div>
@@ -191,8 +207,8 @@ class Center extends PureComponent {
                   </div>
                 </div>
               ) : (
-                  'loading...'
-                )}
+                'loading...'
+              )}
             </Card>
           </Col>
           <Col lg={17} md={24}>

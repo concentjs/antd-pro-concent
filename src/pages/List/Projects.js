@@ -1,6 +1,7 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
 import moment from 'moment';
-import { connect } from 'dva';
+// import { connect } from 'dva';
+import { connect } from 'concent';
 import { Row, Col, Form, Card, Select, List } from 'antd';
 
 import TagSelect from '@/components/TagSelect';
@@ -15,42 +16,43 @@ const FormItem = Form.Item;
 
 /* eslint react/no-array-index-key: 0 */
 
-@connect(({ list, loading }) => ({
-  list,
-  loading: loading.models.list,
-}))
+// @connect(({ list, loading }) => ({
+//   list,
+//   loading: loading.models.list,
+// }))
+@connect(
+  'CoverCardList',
+  { list: '*', loading: ['list/*'] },
+  { isPropsProxy: true }
+)
 @Form.create({
-  onValuesChange({ dispatch }, changedValues, allValues) {
+  onValuesChange(props, changedValues, allValues) {
     // 表单项变化时请求数据
     // eslint-disable-next-line
     console.log(changedValues, allValues);
     // 模拟查询表单生效
-    dispatch({
-      type: 'list/fetch',
-      payload: {
-        count: 8,
-      },
-    });
+    props.$$dispatch('list/fetch', { count: 8 });
   },
 })
-class CoverCardList extends PureComponent {
+class CoverCardList extends React.Component {
+  constructor(props, context) {
+    super(props, context);
+    const { $$attach } = props;
+    $$attach(this);
+  }
+
   componentDidMount() {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'list/fetch',
-      payload: {
-        count: 8,
-      },
-    });
+    this.$$dispatch('list/fetch', { count: 8 });
   }
 
   render() {
     const {
-      list: { list = [] },
-      loading,
-      form,
-    } = this.props;
+      list: { list },
+      loading: loadingState,
+    } = this.$$connectedState;
+    const { form } = this.props;
     const { getFieldDecorator } = form;
+    const loading = loadingState['list/*'];
 
     const cardList = list ? (
       <List

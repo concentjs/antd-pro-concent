@@ -19,7 +19,7 @@ const OfflineData = React.lazy(() => import('./OfflineData'));
 //   chart,
 //   loading: loading.effects['chart/fetch'],
 // }))
-@register('Analysis', { module:'chart', connect: { loading: ['chart/fetch'] } })
+@register('Analysis', { module: 'chart', connect: { loading: ['chart/fetch'] } })
 class Analysis extends Component {
   state = {
     salesType: 'all',
@@ -28,14 +28,13 @@ class Analysis extends Component {
   };
 
   componentDidMount() {
-    const  dispatch  = this.$$dispatch;
+    const dispatch = this.$$dispatch;
     this.reqRef = requestAnimationFrame(() => {
-      dispatch( 'chart/fetch');
+      dispatch('chart/fetch');
     });
   }
 
   componentWillUnmount() {
-    const { dispatch } = this.props;
     this.$$dispatch('chart/clear');
     cancelAnimationFrame(this.reqRef);
     clearTimeout(this.timeoutId);
@@ -61,7 +60,6 @@ class Analysis extends Component {
   };
 
   selectDate = type => {
-    const { dispatch } = this.props;
     this.setState({
       rangePickerValue: getTimeDistance(type),
     });
@@ -85,7 +83,10 @@ class Analysis extends Component {
   };
 
   render() {
-    const { rangePickerValue, salesType, currentTabKey,
+    const {
+      rangePickerValue,
+      salesType,
+      currentTabKey,
       visitData,
       visitData2,
       salesData,
@@ -96,7 +97,8 @@ class Analysis extends Component {
       salesTypeDataOnline,
       salesTypeDataOffline,
     } = this.state;
-    const loading = this.$$connectedState.loading['chart/fetch']
+    const loading = this.$$connectedState.loading['chart/fetch'];
+    console.log('%c@@@ Analysis', 'color:green;border:1px solid green;');
     let salesPieData;
     if (salesType === 'all') {
       salesPieData = salesTypeData;

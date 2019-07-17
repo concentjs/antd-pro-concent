@@ -10,6 +10,7 @@ import stylesApplications from '../../List/Applications.less';
 }))
 class Center extends PureComponent {
   render() {
+    console.log('%c@@@ Account/Center/Applications', 'color:green;border:1px solid green;');
     const {
       list: { list },
     } = this.props;

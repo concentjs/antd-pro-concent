@@ -53,13 +53,13 @@ const query = {
 };
 
 const setup = ctx => {
-  /** 接入concent路由，创建history代理, 因BasicLayout是顶层容器，setup只会在容器挂载时执行一次，所以createHistoryProxy放在这里 */
-  createHistoryProxy(ctx.props.history);
-  /** 定义onUrlChanged函数，当路由变化时，强制刷新BasicLayout */
-  ctx.onUrlChanged((params, action)=>{
-    console.log(`%c onUrlChanged ${action} ${JSON.stringify(params)}`, 'color:red');
-    ctx.forceUpdate();
-  });
+  /** 接入concent路由，创建history代理, 因BasicLayout是顶层容器，setup只会在容器挂载时执行一次，所以createHistoryProxy可以在这里调用 */
+  createHistoryProxy(ctx.props.history, true);
+
+  const matchParamsPath = memoizeOne((pathname, breadcrumbNameMap) => {
+    const pathKey = Object.keys(breadcrumbNameMap).find(key => pathToRegexp(key).test(pathname));
+    return breadcrumbNameMap[pathKey];
+  }, isEqual);
 
   const getPageTitle = memoizeOne((pathname, breadcrumbNameMap) => {
     const currRouterData = matchParamsPath(pathname, breadcrumbNameMap);
@@ -74,27 +74,29 @@ const setup = ctx => {
     return `${pageName} - ${title}`;
   });
 
-  const matchParamsPath = memoizeOne((pathname, breadcrumbNameMap) => {
-    const pathKey = Object.keys(breadcrumbNameMap).find(key => pathToRegexp(key).test(pathname));
-    return breadcrumbNameMap[pathKey];
-  }, isEqual);
-
   ctx.defineEffect(() => {
-    const { route: { routes, authority } } = ctx.props;
+    const {
+      route: { routes, authority },
+    } = ctx.props;
     ctx.dispatch('user/fetchCurrent');
     ctx.dispatch('setting/getSetting');
     ctx.dispatch('menu/getMenuData', { routes, authority });
   }, []);
 
   /** 模拟componentDidUpdate */
-  ctx.defineEffect(() => {
-    // After changing to phone mode,
-    // if collapsed is true, you need to click twice to display
-    const { collapsed, isMobile } = ctx.props;
-    if (isMobile && !ctx.prevProps.isMobile && !collapsed) {
-      ctx.settings.handleMenuCollapse(false);
-    }
-  }, null, 'hmcEffect', false);
+  ctx.defineEffect(
+    () => {
+      // After changing to phone mode,
+      // if collapsed is true, you need to click twice to display
+      const { collapsed, isMobile } = ctx.props;
+      if (isMobile && !ctx.prevProps.isMobile && !collapsed) {
+        ctx.settings.handleMenuCollapse(false);
+      }
+    },
+    null,
+    'hmcEffect',
+    false
+  );
 
   const getContext = () => {
     const { location } = ctx.props;
@@ -102,7 +104,7 @@ const setup = ctx => {
       location,
       breadcrumbNameMap: ctx.connectedState.menu.breadcrumbNameMap,
     };
-  }
+  };
 
   const getRouterAuthority = (pathname, routeData) => {
     let routeAuthority = ['noAuthority'];
@@ -144,8 +146,13 @@ const setup = ctx => {
   };
 
   return {
-    getContext, matchParamsPath, getRouterAuthority, getPageTitle,
-    getLayoutStyle, handleMenuCollapse, renderSettingDrawer
+    getContext,
+    matchParamsPath,
+    getRouterAuthority,
+    getPageTitle,
+    getLayoutStyle,
+    handleMenuCollapse,
+    renderSettingDrawer,
   };
 };
 
@@ -156,9 +163,11 @@ const mapProps = ctx => {
     layout: setting.layout,
     menuData: menu.menuData,
     breadcrumbNameMap: menu.breadcrumbNameMap,
-    ...setting, ...ctx.props, ...ctx.settings
+    ...setting,
+    ...ctx.props,
+    ...ctx.settings,
   };
-}
+};
 
 const BasicLayout = props => {
   const {
@@ -171,19 +180,27 @@ const BasicLayout = props => {
     breadcrumbNameMap,
     route: { routes },
     fixedHeader,
+    getRouterAuthority,
+    handleMenuCollapse,
+    getPageTitle,
+    getContext,
+    renderSettingDrawer,
+    getLayoutStyle,
   } = props;
 
   const isTop = PropsLayout === 'topmenu';
-  const routerConfig = props.getRouterAuthority(pathname, routes);
-  console.log('------>>>props ', props);
+  const routerConfig = getRouterAuthority(pathname, routes);
   const contentStyle = !fixedHeader ? { paddingTop: 0 } : {};
+
+  const layoutStyle = getLayoutStyle();
+
   const layout = (
     <Layout>
       {isTop && !isMobile ? null : (
         <SiderMenu
           logo={logo}
           theme={navTheme}
-          onCollapse={props.handleMenuCollapse}
+          onCollapse={handleMenuCollapse}
           menuData={menuData}
           isMobile={isMobile}
           {...props}
@@ -191,13 +208,13 @@ const BasicLayout = props => {
       )}
       <Layout
         style={{
-          ...props.getLayoutStyle(),
+          ...layoutStyle,
           minHeight: '100vh',
         }}
       >
         <Header
           menuData={menuData}
-          handleMenuCollapse={props.handleMenuCollapse}
+          handleMenuCollapse={handleMenuCollapse}
           logo={logo}
           isMobile={isMobile}
           {...props}
@@ -213,26 +230,26 @@ const BasicLayout = props => {
   );
   return (
     <React.Fragment>
-      <DocumentTitle title={props.getPageTitle(pathname, breadcrumbNameMap)}>
+      <DocumentTitle title={getPageTitle(pathname, breadcrumbNameMap)}>
         <ContainerQuery query={query}>
           {params => (
-            <Context.Provider value={props.getContext()}>
+            <Context.Provider value={getContext()}>
               <div className={classNames(params)}>{layout}</div>
             </Context.Provider>
           )}
         </ContainerQuery>
       </DocumentTitle>
-      <Suspense fallback={<PageLoading />}>{props.renderSettingDrawer()}</Suspense>
+      <Suspense fallback={<PageLoading />}>{renderSettingDrawer()}</Suspense>
     </React.Fragment>
   );
-}
+};
 
 export default connectDumb({
   setup,
   mapProps,
-  connect: { $$global: ['collapsed'], setting: '*', menu: ['menuData', 'breadcrumbNameMap'] }
+  connect: { $$global: ['collapsed'], setting: '*', menu: ['menuData', 'breadcrumbNameMap'] },
 })(props => (
   <Media query="(max-width: 599px)">
     {isMobile => <BasicLayout {...props} isMobile={isMobile} />}
   </Media>
-))
+));

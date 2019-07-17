@@ -1,8 +1,9 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
 import { Select, message, Drawer, List, Switch, Divider, Icon, Button, Alert, Tooltip } from 'antd';
 import { formatMessage } from 'umi/locale';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { connect } from 'dva';
+// import { connect } from 'dva';
+import { connectDumb } from 'concent';
 import omit from 'omit.js';
 import styles from './index.less';
 import ThemeColor from './ThemeColor';
@@ -22,16 +23,20 @@ const Body = ({ children, title, style }) => (
   </div>
 );
 
-@connect(({ setting }) => ({ setting }))
-class SettingDrawer extends PureComponent {
-  state = {
-    collapse: false,
+const setup = ctx => {
+  const changeSetting = (key, value) => {
+    const setting = ctx.moduleState;
+    setting[key] = value;
+    if (key === 'layout') {
+      setting.contentWidth = value === 'topmenu' ? 'Fixed' : 'Fluid';
+    } else if (key === 'fixedHeader' && !value) {
+      setting.autoHideHeader = false;
+    }
+    ctx.dispatch('changeSetting', setting);
   };
 
-  getLayoutSetting = () => {
-    const {
-      setting: { contentWidth, fixedHeader, layout, autoHideHeader, fixSiderbar },
-    } = this.props;
+  const getLayoutSetting = () => {
+    const { contentWidth, fixedHeader, layout, autoHideHeader, fixSiderbar } = ctx.moduleState;
     return [
       {
         title: formatMessage({ id: 'app.setting.content-width' }),
@@ -39,7 +44,7 @@ class SettingDrawer extends PureComponent {
           <Select
             value={contentWidth}
             size="small"
-            onSelect={value => this.changeSetting('contentWidth', value)}
+            onSelect={value => changeSetting('contentWidth', value)}
             style={{ width: 80 }}
           >
             {layout === 'sidemenu' ? null : (
@@ -59,7 +64,7 @@ class SettingDrawer extends PureComponent {
           <Switch
             size="small"
             checked={!!fixedHeader}
-            onChange={checked => this.changeSetting('fixedHeader', checked)}
+            onChange={checked => changeSetting('fixedHeader', checked)}
           />
         ),
       },
@@ -71,7 +76,7 @@ class SettingDrawer extends PureComponent {
           <Switch
             size="small"
             checked={!!autoHideHeader}
-            onChange={checked => this.changeSetting('autoHideHeader', checked)}
+            onChange={checked => changeSetting('autoHideHeader', checked)}
           />
         ),
       },
@@ -83,37 +88,19 @@ class SettingDrawer extends PureComponent {
           <Switch
             size="small"
             checked={!!fixSiderbar}
-            onChange={checked => this.changeSetting('fixSiderbar', checked)}
+            onChange={checked => changeSetting('fixSiderbar', checked)}
           />
         ),
       },
     ];
   };
 
-  changeSetting = (key, value) => {
-    const { setting } = this.props;
-    const nextState = { ...setting };
-    nextState[key] = value;
-    if (key === 'layout') {
-      nextState.contentWidth = value === 'topmenu' ? 'Fixed' : 'Fluid';
-    } else if (key === 'fixedHeader' && !value) {
-      nextState.autoHideHeader = false;
-    }
-    this.setState(nextState, () => {
-      const { dispatch } = this.props;
-      dispatch({
-        type: 'setting/changeSetting',
-        payload: this.state,
-      });
-    });
+  const togglerContent = () => {
+    const { collapse } = ctx.state;
+    ctx.setState({ collapse: !collapse });
   };
 
-  togglerContent = () => {
-    const { collapse } = this.state;
-    this.setState({ collapse: !collapse });
-  };
-
-  renderLayoutSettingItem = item => {
+  const renderLayoutSettingItem = item => {
     const action = React.cloneElement(item.action, {
       disabled: item.disabled,
     });
@@ -126,129 +113,148 @@ class SettingDrawer extends PureComponent {
     );
   };
 
-  render() {
-    const { setting } = this.props;
-    const { navTheme, primaryColor, layout, colorWeak } = setting;
-    const { collapse } = this.state;
-    return (
-      <Drawer
-        visible={collapse}
-        width={300}
-        onClose={this.togglerContent}
-        placement="right"
-        handler={
-          <div className={styles.handle}>
-            <Icon
-              type={collapse ? 'close' : 'setting'}
-              style={{
-                color: '#fff',
-                fontSize: 20,
-              }}
-            />
-          </div>
-        }
-        onHandleClick={this.togglerContent}
-        style={{
-          zIndex: 999,
-        }}
-      >
-        <div className={styles.content}>
-          <Body title={formatMessage({ id: 'app.setting.pagestyle' })}>
-            <BlockCheckbox
-              list={[
-                {
-                  key: 'dark',
-                  url: 'https://gw.alipayobjects.com/zos/rmsportal/LCkqqYNmvBEbokSDscrm.svg',
-                  title: formatMessage({ id: 'app.setting.pagestyle.dark' }),
-                },
-                {
-                  key: 'light',
-                  url: 'https://gw.alipayobjects.com/zos/rmsportal/jpRkZQMyYRryryPNtyIC.svg',
-                  title: formatMessage({ id: 'app.setting.pagestyle.light' }),
-                },
-              ]}
-              value={navTheme}
-              onChange={value => this.changeSetting('navTheme', value)}
-            />
-          </Body>
+  return {
+    getLayoutSetting,
+    changeSetting,
+    togglerContent,
+    renderLayoutSettingItem,
+  };
+};
 
-          <ThemeColor
-            title={formatMessage({ id: 'app.setting.themecolor' })}
-            value={primaryColor}
-            onChange={color => this.changeSetting('primaryColor', color)}
-          />
+const state = {
+  collapse: false,
+};
 
-          <Divider />
+const SettingDrawer = props => {
+  const {
+    collapse,
+    setting,
+    togglerContent,
+    changeSetting,
+    getLayoutSetting,
+    renderLayoutSettingItem,
+  } = props;
+  const { navTheme, primaryColor, layout, colorWeak } = setting;
 
-          <Body title={formatMessage({ id: 'app.setting.navigationmode' })}>
-            <BlockCheckbox
-              list={[
-                {
-                  key: 'sidemenu',
-                  url: 'https://gw.alipayobjects.com/zos/rmsportal/JopDzEhOqwOjeNTXkoje.svg',
-                  title: formatMessage({ id: 'app.setting.sidemenu' }),
-                },
-                {
-                  key: 'topmenu',
-                  url: 'https://gw.alipayobjects.com/zos/rmsportal/KDNDBbriJhLwuqMoxcAr.svg',
-                  title: formatMessage({ id: 'app.setting.topmenu' }),
-                },
-              ]}
-              value={layout}
-              onChange={value => this.changeSetting('layout', value)}
-            />
-          </Body>
-
-          <List
-            split={false}
-            dataSource={this.getLayoutSetting()}
-            renderItem={this.renderLayoutSettingItem}
-          />
-
-          <Divider />
-
-          <Body title={formatMessage({ id: 'app.setting.othersettings' })}>
-            <List.Item
-              actions={[
-                <Switch
-                  size="small"
-                  checked={!!colorWeak}
-                  onChange={checked => this.changeSetting('colorWeak', checked)}
-                />,
-              ]}
-            >
-              {formatMessage({ id: 'app.setting.weakmode' })}
-            </List.Item>
-          </Body>
-          <Divider />
-          <CopyToClipboard
-            text={JSON.stringify(omit(setting, ['colorWeak']), null, 2)}
-            onCopy={() => message.success(formatMessage({ id: 'app.setting.copyinfo' }))}
-          >
-            <Button block icon="copy">
-              {formatMessage({ id: 'app.setting.copy' })}
-            </Button>
-          </CopyToClipboard>
-          <Alert
-            type="warning"
-            className={styles.productionHint}
-            message={
-              <div>
-                {formatMessage({ id: 'app.setting.production.hint' })}{' '}
-                <a
-                  href="https://u.ant.design/pro-v2-default-settings"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  src/defaultSettings.js
-                </a>
-              </div>
-            }
+  return (
+    <Drawer
+      visible={collapse}
+      width={300}
+      onClose={togglerContent}
+      placement="right"
+      handler={
+        <div className={styles.handle}>
+          <Icon
+            type={collapse ? 'close' : 'setting'}
+            style={{
+              color: '#fff',
+              fontSize: 20,
+            }}
           />
         </div>
-      </Drawer>
-    );
-  }
-}
+      }
+      onHandleClick={togglerContent}
+      style={{
+        zIndex: 999,
+      }}
+    >
+      <div className={styles.content}>
+        <Body title={formatMessage({ id: 'app.setting.pagestyle' })}>
+          <BlockCheckbox
+            list={[
+              {
+                key: 'dark',
+                url: 'https://gw.alipayobjects.com/zos/rmsportal/LCkqqYNmvBEbokSDscrm.svg',
+                title: formatMessage({ id: 'app.setting.pagestyle.dark' }),
+              },
+              {
+                key: 'light',
+                url: 'https://gw.alipayobjects.com/zos/rmsportal/jpRkZQMyYRryryPNtyIC.svg',
+                title: formatMessage({ id: 'app.setting.pagestyle.light' }),
+              },
+            ]}
+            value={navTheme}
+            onChange={value => changeSetting('navTheme', value)}
+          />
+        </Body>
 
-export default SettingDrawer;
+        <ThemeColor
+          title={formatMessage({ id: 'app.setting.themecolor' })}
+          value={primaryColor}
+          onChange={color => changeSetting('primaryColor', color)}
+        />
+
+        <Divider />
+
+        <Body title={formatMessage({ id: 'app.setting.navigationmode' })}>
+          <BlockCheckbox
+            list={[
+              {
+                key: 'sidemenu',
+                url: 'https://gw.alipayobjects.com/zos/rmsportal/JopDzEhOqwOjeNTXkoje.svg',
+                title: formatMessage({ id: 'app.setting.sidemenu' }),
+              },
+              {
+                key: 'topmenu',
+                url: 'https://gw.alipayobjects.com/zos/rmsportal/KDNDBbriJhLwuqMoxcAr.svg',
+                title: formatMessage({ id: 'app.setting.topmenu' }),
+              },
+            ]}
+            value={layout}
+            onChange={value => changeSetting('layout', value)}
+          />
+        </Body>
+
+        <List split={false} dataSource={getLayoutSetting()} renderItem={renderLayoutSettingItem} />
+
+        <Divider />
+
+        <Body title={formatMessage({ id: 'app.setting.othersettings' })}>
+          <List.Item
+            actions={[
+              <Switch
+                size="small"
+                checked={!!colorWeak}
+                onChange={checked => changeSetting('colorWeak', checked)}
+              />,
+            ]}
+          >
+            {formatMessage({ id: 'app.setting.weakmode' })}
+          </List.Item>
+        </Body>
+        <Divider />
+        <CopyToClipboard
+          text={JSON.stringify(omit(setting, ['colorWeak']), null, 2)}
+          onCopy={() => message.success(formatMessage({ id: 'app.setting.copyinfo' }))}
+        >
+          <Button block icon="copy">
+            {formatMessage({ id: 'app.setting.copy' })}
+          </Button>
+        </CopyToClipboard>
+        <Alert
+          type="warning"
+          className={styles.productionHint}
+          message={
+            <div>
+              {formatMessage({ id: 'app.setting.production.hint' })}{' '}
+              <a
+                href="https://u.ant.design/pro-v2-default-settings"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                src/defaultSettings.js
+              </a>
+            </div>
+          }
+        />
+      </div>
+    </Drawer>
+  );
+};
+
+export default connectDumb({
+  state,
+  setup,
+  module: 'setting',
+  mapProps: ctx => ({ collapse: ctx.state.collapse, setting: ctx.moduleState, ...ctx.settings }),
+})(SettingDrawer);

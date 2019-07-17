@@ -6,10 +6,9 @@ export default {
   },
 
   reducer: {
-    fetchTags: async function () {
-      const response = await call(queryTags);
-      return {tags: response.list};
+    async fetchTags() {
+      const response = await queryTags();
+      return { tags: response.list };
     },
   },
-
 };

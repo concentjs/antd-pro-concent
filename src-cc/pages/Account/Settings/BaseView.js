@@ -1,7 +1,8 @@
 import React, { Component, Fragment } from 'react';
 import { formatMessage, FormattedMessage } from 'umi/locale';
 import { Form, Input, Upload, Select, Button } from 'antd';
-import { connect } from 'dva';
+// import { connect } from 'dva';
+import { register } from 'concent';
 import styles from './BaseView.less';
 import GeographicView from './GeographicView';
 import PhoneView from './PhoneView';
@@ -51,17 +52,33 @@ const validatorPhone = (rule, value, callback) => {
   callback();
 };
 
-@connect(({ user }) => ({
-  currentUser: user.currentUser,
-}))
+// @connect(({ user }) => ({
+//   currentUser: user.currentUser,
+// }))
+/** 出现多重装饰器时，使用属性代理模式 */
+@register('SettingsBaseView', { module: 'user', watchedKeys: ['currentUser'], isPropsProxy: true })
 @Form.create()
 class BaseView extends Component {
+  constructor(props, context) {
+    super(props, context);
+    this.state = {};
+    /** 配合属性代理模式 */
+    const { $$attach } = props;
+    $$attach(this);
+  }
+
   componentDidMount() {
     this.setBaseInfo();
   }
 
+  // $$onUrlChanged(){
+  //   console.log('%c@@@ Account/Settings/BaseView $$onUrlChanged', 'color:green;border:1px solid green;');
+  //   this.forceUpdate();
+  // }
+
   setBaseInfo = () => {
-    const { currentUser, form } = this.props;
+    const { form } = this.props;
+    const { currentUser } = this.state;
     Object.keys(form.getFieldsValue()).forEach(key => {
       const obj = {};
       obj[key] = currentUser[key] || null;
@@ -70,7 +87,7 @@ class BaseView extends Component {
   };
 
   getAvatarURL() {
-    const { currentUser } = this.props;
+    const { currentUser } = this.state;
     if (currentUser.avatar) {
       return currentUser.avatar;
     }
@@ -83,6 +100,7 @@ class BaseView extends Component {
   };
 
   render() {
+    console.log('%c@@@ Account/Settings/BaseView', 'color:green;border:1px solid green;');
     const {
       form: { getFieldDecorator },
     } = this.props;

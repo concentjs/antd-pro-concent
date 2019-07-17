@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { connect } from 'dva';
+// import { connect } from 'dva';
+import { register } from 'concent';
 import router from 'umi/router';
 import { FormattedMessage } from 'umi/locale';
 import { Menu } from 'antd';
@@ -8,9 +9,10 @@ import styles from './Info.less';
 
 const { Item } = Menu;
 
-@connect(({ user }) => ({
-  currentUser: user.currentUser,
-}))
+// @connect(({ user }) => ({
+//   currentUser: user.currentUser,
+// }))
+@register('Info', { module: 'user', watchedKeys: ['currentUser'] })
 class Info extends Component {
   constructor(props) {
     super(props);
@@ -94,7 +96,8 @@ class Info extends Component {
   };
 
   render() {
-    const { children, currentUser } = this.props;
+    const { children } = this.props;
+    const { currentUser } = this.state;
     if (!currentUser.userid) {
       return '';
     }

@@ -1,5 +1,6 @@
 import React, { Component, Fragment } from 'react';
-import { connect } from 'dva';
+// import { connect } from 'dva';
+import { connect } from 'concent';
 import { Form, Card, Select, List, Tag, Icon, Row, Col, Button } from 'antd';
 
 import TagSelect from '@/components/TagSelect';
@@ -12,33 +13,29 @@ const FormItem = Form.Item;
 
 const pageSize = 5;
 
-@connect(({ list, loading }) => ({
-  list,
-  loading: loading.models.list,
-}))
+@connect(
+  'ArticlesList',
+  { list: '*', loading: ['list/*'] },
+  { isPropsProxy: true }
+)
 @Form.create({
-  onValuesChange({ dispatch }, changedValues, allValues) {
+  onValuesChange(props, changedValues, allValues) {
     // 表单项变化时请求数据
     // eslint-disable-next-line
     console.log(changedValues, allValues);
     // 模拟查询表单生效
-    dispatch({
-      type: 'list/fetch',
-      payload: {
-        count: 5,
-      },
-    });
+    props.$$dispatch('list/fetch', { count: 5 });
   },
 })
 class SearchList extends Component {
+  constructor(props, context) {
+    super(props, context);
+    const { $$attach } = props;
+    $$attach(this);
+  }
+
   componentDidMount() {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'list/fetch',
-      payload: {
-        count: 5,
-      },
-    });
+    this.$$dispatch('list/fetch', { count: 5 });
   }
 
   setOwner = () => {
@@ -49,22 +46,17 @@ class SearchList extends Component {
   };
 
   fetchMore = () => {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'list/appendFetch',
-      payload: {
-        count: pageSize,
-      },
-    });
+    this.$$dispatch('list/appendFetch', { count: pageSize });
   };
 
   render() {
     const {
-      form,
       list: { list },
-      loading,
-    } = this.props;
+      loading: loadingState,
+    } = this.$$connectedState;
+    const { form } = this.props;
     const { getFieldDecorator } = form;
+    const loading = loadingState['list/*'];
 
     const owners = [
       {

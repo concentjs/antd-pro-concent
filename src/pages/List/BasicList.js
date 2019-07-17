@@ -1,7 +1,8 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
 import { findDOMNode } from 'react-dom';
 import moment from 'moment';
-import { connect } from 'dva';
+// import { connect } from 'dva';
+import { connect } from 'concent';
 import {
   List,
   Card,
@@ -32,27 +33,27 @@ const RadioGroup = Radio.Group;
 const SelectOption = Select.Option;
 const { Search, TextArea } = Input;
 
-@connect(({ list, loading }) => ({
-  list,
-  loading: loading.models.list,
-}))
+@connect(
+  'BasicList',
+  { list: '*', loading: ['list/*'] },
+  { isPropsProxy: true }
+)
 @Form.create()
-class BasicList extends PureComponent {
-  state = { visible: false, done: false };
-
+class BasicList extends React.Component {
   formLayout = {
     labelCol: { span: 7 },
     wrapperCol: { span: 13 },
   };
 
+  constructor(props, context) {
+    super(props, context);
+    this.state = { visible: false, done: false };
+    const { $$attach } = props;
+    $$attach(this);
+  }
+
   componentDidMount() {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'list/fetch',
-      payload: {
-        count: 5,
-      },
-    });
+    this.$$dispatch('list/fetch', { count: 5 });
   }
 
   showModal = () => {
@@ -86,7 +87,7 @@ class BasicList extends PureComponent {
 
   handleSubmit = e => {
     e.preventDefault();
-    const { dispatch, form } = this.props;
+    const { form } = this.props;
     const { current } = this.state;
     const id = current ? current.id : '';
 
@@ -96,30 +97,24 @@ class BasicList extends PureComponent {
       this.setState({
         done: true,
       });
-      dispatch({
-        type: 'list/submit',
-        payload: { id, ...fieldsValue },
-      });
+      this.$$dispatch('list/submit', { id, ...fieldsValue });
     });
   };
 
   deleteItem = id => {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'list/submit',
-      payload: { id },
-    });
+    this.$$dispatch('list/submit', { id });
   };
 
   render() {
     const {
       list: { list },
-      loading,
-    } = this.props;
+      loading: listLoading,
+    } = this.$$connectedState;
     const {
       form: { getFieldDecorator },
     } = this.props;
     const { visible, done, current = {} } = this.state;
+    const loading = listLoading['list/*'];
 
     const editAndDelete = (key, currentItem) => {
       if (key === 'edit') this.showEditModal(currentItem);

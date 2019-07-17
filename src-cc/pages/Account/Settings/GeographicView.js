@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import { Select, Spin } from 'antd';
-import { connect } from 'dva';
+// import { connect } from 'dva';
+import { register } from 'concent';
 import styles from './GeographicView.less';
 
 const { Option } = Select;
@@ -10,40 +11,35 @@ const nullSlectItem = {
   key: '',
 };
 
-@connect(({ geographic }) => {
-  const { province, isLoading, city } = geographic;
-  return {
-    province,
-    city,
-    isLoading,
-  };
-})
+// @connect(({ geographic }) => {
+//   const { province, isLoading, city } = geographic;
+//   return {
+//     province,
+//     city,
+//     isLoading,
+//   };
+// })
+@register('GeographicView', 'geographic')
 class GeographicView extends PureComponent {
   componentDidMount = () => {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'geographic/fetchProvince',
-    });
+    this.$$dispatch('geographic/fetchProvince');
   };
 
   componentDidUpdate(props) {
-    const { dispatch, value } = this.props;
+    const { value } = this.props;
 
     if (!props.value && !!value && !!value.province) {
-      dispatch({
-        type: 'geographic/fetchCity',
-        payload: value.province.key,
-      });
+      this.$$dispatch('geographic/fetchCity', value.province.key);
     }
   }
 
   getProvinceOption() {
-    const { province } = this.props;
+    const { province } = this.state;
     return this.getOption(province);
   }
 
   getCityOption = () => {
-    const { city } = this.props;
+    const { city } = this.state;
     return this.getOption(city);
   };
 
@@ -63,11 +59,8 @@ class GeographicView extends PureComponent {
   };
 
   selectProvinceItem = item => {
-    const { dispatch, onChange } = this.props;
-    dispatch({
-      type: 'geographic/fetchCity',
-      payload: item.key,
-    });
+    const { onChange } = this.props;
+    this.$$dispatch('geographic/fetchCity', item.key);
     onChange({
       province: item,
       city: nullSlectItem,
@@ -99,7 +92,7 @@ class GeographicView extends PureComponent {
 
   render() {
     const { province, city } = this.conversionObject();
-    const { isLoading } = this.props;
+    const { isLoading } = this.state;
     return (
       <Spin spinning={isLoading} wrapperClassName={styles.row}>
         <Select
