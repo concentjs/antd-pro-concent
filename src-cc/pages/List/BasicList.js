@@ -2,7 +2,7 @@ import React from 'react';
 import { findDOMNode } from 'react-dom';
 import moment from 'moment';
 // import { connect } from 'dva';
-import { connect } from 'concent';
+import { register } from 'concent';
 import {
   List,
   Card,
@@ -33,11 +33,7 @@ const RadioGroup = Radio.Group;
 const SelectOption = Select.Option;
 const { Search, TextArea } = Input;
 
-@connect(
-  'BasicList',
-  { list: '*', loading: ['list/*'] },
-  { isPropsProxy: true }
-)
+@register({ isPropsProxy: true, connect: { list: '*', loading: ['list'] } }, 'BasicList')
 @Form.create()
 class BasicList extends React.Component {
   formLayout = {
@@ -53,7 +49,7 @@ class BasicList extends React.Component {
   }
 
   componentDidMount() {
-    this.$$dispatch('list/fetch', { count: 5 });
+    this.ctx.dispatch('list/fetch', { count: 5 });
   }
 
   showModal = () => {
@@ -97,19 +93,19 @@ class BasicList extends React.Component {
       this.setState({
         done: true,
       });
-      this.$$dispatch('list/submit', { id, ...fieldsValue });
+      this.ctx.dispatch('list/submit', { id, ...fieldsValue });
     });
   };
 
   deleteItem = id => {
-    this.$$dispatch('list/submit', { id });
+    this.ctx.dispatch('list/submit', { id });
   };
 
   render() {
     const {
       list: { list },
       loading: listLoading,
-    } = this.$$connectedState;
+    } = this.ctx.connectedState;
     const {
       form: { getFieldDecorator },
     } = this.props;

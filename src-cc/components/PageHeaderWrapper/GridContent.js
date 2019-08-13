@@ -1,6 +1,6 @@
 import React from 'react';
 // import { connect } from 'dva';
-import { connectDumb } from 'concent';
+import { registerDumb } from 'concent';
 import styles from './GridContent.less';
 
 const GridContent = props => {
@@ -12,7 +12,7 @@ const GridContent = props => {
   return <div className={className}>{children}</div>;
 };
 
-export default connectDumb({
+export default registerDumb({
   tag: 'GridContent',
   module: 'setting',
   watchedKeys: ['contentWidth'],

@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from 'react';
 // import { connect } from 'dva';
-import { connect } from 'concent';
+import { register } from 'concent';
 import { Form, Card, Select, List, Tag, Icon, Row, Col, Button } from 'antd';
 
 import TagSelect from '@/components/TagSelect';
@@ -13,18 +13,14 @@ const FormItem = Form.Item;
 
 const pageSize = 5;
 
-@connect(
-  'ArticlesList',
-  { list: '*', loading: ['list/*'] },
-  { isPropsProxy: true }
-)
+@register({ isPropsProxy: true, connect: { list: '*', loading: ['list'] } }, 'ArticlesList')
 @Form.create({
   onValuesChange(props, changedValues, allValues) {
     // 表单项变化时请求数据
     // eslint-disable-next-line
     console.log(changedValues, allValues);
     // 模拟查询表单生效
-    props.$$dispatch('list/fetch', { count: 5 });
+    props.ctx.dispatch('list/fetch', { count: 5 });
   },
 })
 class SearchList extends Component {
@@ -35,7 +31,7 @@ class SearchList extends Component {
   }
 
   componentDidMount() {
-    this.$$dispatch('list/fetch', { count: 5 });
+    this.ctx.dispatch('list/fetch', { count: 5 });
   }
 
   setOwner = () => {
@@ -46,14 +42,14 @@ class SearchList extends Component {
   };
 
   fetchMore = () => {
-    this.$$dispatch('list/appendFetch', { count: pageSize });
+    this.ctx.dispatch('list/appendFetch', { count: pageSize });
   };
 
   render() {
     const {
       list: { list },
       loading: loadingState,
-    } = this.$$connectedState;
+    } = this.ctx.connectedState;
     const { form } = this.props;
     const { getFieldDecorator } = form;
     const loading = loadingState['list/*'];

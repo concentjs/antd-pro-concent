@@ -1,7 +1,7 @@
 import React from 'react';
 import numeral from 'numeral';
 // import { connect } from 'dva';
-import { connect } from 'concent';
+import { register } from 'concent';
 import { Row, Col, Form, Card, Select, Icon, Avatar, List, Tooltip, Dropdown, Menu } from 'antd';
 import TagSelect from '@/components/TagSelect';
 import StandardFormRow from '@/components/StandardFormRow';
@@ -17,11 +17,7 @@ const FormItem = Form.Item;
 //   list,
 //   loading: loading.models.list,
 // }))
-@connect(
-  'CoverCardList',
-  { list: '*', loading: ['list/*'] },
-  { isPropsProxy: true }
-)
+@register({ isPropsProxy: true, connect: { list: '*', loading: ['list'] } }, 'CoverCardList')
 @Form.create({
   onValuesChange(props, changedValues, allValues) {
     // 表单项变化时请求数据
@@ -29,7 +25,7 @@ const FormItem = Form.Item;
     console.log(changedValues, allValues);
     // 模拟查询表单生效
     // 模拟查询表单生效
-    props.$$dispatch('list/fetch', { count: 8 });
+    props.ctx.dispatch('list/fetch', { count: 8 });
   },
 })
 class FilterCardList extends React.Component {
@@ -40,14 +36,14 @@ class FilterCardList extends React.Component {
   }
 
   componentDidMount() {
-    this.$$dispatch('list/fetch', { count: 8 });
+    this.ctx.dispatch('list/fetch', { count: 8 });
   }
 
   render() {
     const {
       list: { list },
       loading: loadingState,
-    } = this.$$connectedState;
+    } = this.ctx.connectedState;
     const { form } = this.props;
     const { getFieldDecorator } = form;
     const loading = loadingState['list/*'];

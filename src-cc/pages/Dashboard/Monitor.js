@@ -25,16 +25,16 @@ const havePermissionAsync = new Promise(resolve => {
 
 @Secured(havePermissionAsync)
 @connect(
-  'Monitor',
-  { monitor: '*', loading: ['monitor/fetchTags'] }
+  { monitor: '*', loading: ['monitor/fetchTags'] },
+  'Monitor'
 )
 class Monitor extends React.Component {
   componentDidMount() {
-    this.$$dispatch('monitor/fetchTags');
+    this.ctx.dispatch('monitor/fetchTags');
   }
 
   render() {
-    const { monitor, loading: monitorLoading } = this.$$connectedState;
+    const { monitor, loading: monitorLoading } = this.ctx.connectedState;
     const { tags } = monitor;
     const loading = monitorLoading['monitor/fetchTags'];
 

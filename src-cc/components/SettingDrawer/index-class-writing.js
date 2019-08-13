@@ -24,7 +24,7 @@ const Body = ({ children, title, style }) => (
 );
 
 // @connect(({ setting }) => ({ setting }))
-@register('SettingDrawer', 'setting')
+@register('setting', 'SettingDrawer')
 class SettingDrawer extends PureComponent {
   state = {
     collapse: false,
@@ -91,7 +91,7 @@ class SettingDrawer extends PureComponent {
   };
 
   // changeSetting = (key, value) => {
-  //   const { setting } = this.$$connectedState;
+  //   const { setting } = this.ctx.connectedState;
   //   const nextState = { ...setting };
   //   nextState[key] = value;
   //   if (key === 'layout') {
@@ -100,7 +100,7 @@ class SettingDrawer extends PureComponent {
   //     nextState.autoHideHeader = false;
   //   }
   //   this.setState(nextState, () => {
-  //     this.$$dispatch('setting/changeSetting', this.state);
+  //     this.ctx.dispatch('setting/changeSetting', this.state);
   //   });
   // };
   changeSetting = (key, value) => {
@@ -111,7 +111,7 @@ class SettingDrawer extends PureComponent {
     } else if (key === 'fixedHeader' && !value) {
       setting.autoHideHeader = false;
     }
-    this.$$dispatch('setting/changeSetting', setting);
+    this.ctx.dispatch('setting/changeSetting', setting);
   };
 
   togglerContent = () => {

@@ -4,8 +4,9 @@ import DocumentTitle from 'react-document-title';
 import isEqual from 'lodash/isEqual';
 import memoizeOne from 'memoize-one';
 // import { connect } from 'dva';
-import { connectDumb } from 'concent';
+import { registerDumb } from 'concent';
 import { createHistoryProxy } from 'react-router-concent';
+import { ConcentWebDevTool } from 'concent-middleware-web-devtool';
 import { ContainerQuery } from 'react-container-query';
 import classNames from 'classnames';
 import pathToRegexp from 'path-to-regexp';
@@ -145,6 +146,13 @@ const setup = ctx => {
     return <SettingDrawer />;
   };
 
+  const renderConcentWebDevTool = () => {
+    if (process.env.NODE_ENV === 'production' && APP_TYPE !== 'site') {
+      return null;
+    }
+    return <ConcentWebDevTool />;
+  };
+
   return {
     getContext,
     matchParamsPath,
@@ -153,6 +161,7 @@ const setup = ctx => {
     getLayoutStyle,
     handleMenuCollapse,
     renderSettingDrawer,
+    renderConcentWebDevTool,
   };
 };
 
@@ -185,6 +194,7 @@ const BasicLayout = props => {
     getPageTitle,
     getContext,
     renderSettingDrawer,
+    renderConcentWebDevTool,
     getLayoutStyle,
   } = props;
 
@@ -240,11 +250,12 @@ const BasicLayout = props => {
         </ContainerQuery>
       </DocumentTitle>
       <Suspense fallback={<PageLoading />}>{renderSettingDrawer()}</Suspense>
+      {renderConcentWebDevTool()}
     </React.Fragment>
   );
 };
 
-export default connectDumb({
+export default registerDumb({
   setup,
   mapProps,
   connect: { $$global: ['collapsed'], setting: '*', menu: ['menuData', 'breadcrumbNameMap'] },

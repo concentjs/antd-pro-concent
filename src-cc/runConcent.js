@@ -1,4 +1,5 @@
 import loadingPlugin from 'concent-plugin-loading';
+import { concentWebDevToolMiddleware } from 'concent-middleware-web-devtool';
 import { run } from 'concent';
 import * as models from './models-cc';
 import * as dashboardModels from './pages/Dashboard/models-cc';
@@ -12,7 +13,9 @@ const allModels = { ...models, ...dashboardModels, ...accSettingsModels, ...list
 run(allModels, {
   plugins: [loadingPlugin],
   middlewares: [
-    (ctx, next) => {
+    concentWebDevToolMiddleware,
+    (middlewareCtx, next) => {
+      // console.log(middlewareCtx);
       next();
     },
   ],

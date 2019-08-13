@@ -1,15 +1,14 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
 import { List, Card, Icon, Dropdown, Menu, Avatar, Tooltip } from 'antd';
 import numeral from 'numeral';
 // import { connect } from 'dva';
-import { connectDumb } from 'concent';
+import { registerDumb } from 'concent';
 import { formatWan } from '@/utils/utils';
 import stylesApplications from '../../List/Applications.less';
 
-
 const Applications = props => {
   console.log('%c@@@ Account/Center/Applications', 'color:green;border:1px solid green;');
-  const list = props.list;
+  const { list } = props;
   const itemMenu = (
     <Menu>
       <Menu.Item>
@@ -79,9 +78,9 @@ const Applications = props => {
       )}
     />
   );
-}
+};
 
-export default connectDumb({
+export default registerDumb({
   module: 'list',
-  mapProps: ctx => ({ list: ctx.moduleState.list })
+  mapProps: ctx => ({ list: ctx.moduleState.list }),
 })(Applications);

@@ -1,6 +1,6 @@
 import React, { PureComponent, Fragment } from 'react';
 // import { connect } from 'dva';
-import { connect } from 'concent';
+import { register } from 'concent';
 import moment from 'moment';
 import {
   Row,
@@ -274,11 +274,7 @@ class UpdateForm extends PureComponent {
 }
 
 /* eslint react/no-multi-comp:0 */
-@connect(
-  'TableList',
-  { rule: '*', loading: ['rule/*'] },
-  { isPropsProxy: true }
-)
+@register({ connect: { rule: '*', loading: ['rule'] }, isPropsProxy: true }, 'TableList')
 @Form.create()
 class TableList extends React.Component {
   columns = [
@@ -357,7 +353,7 @@ class TableList extends React.Component {
   }
 
   componentDidMount() {
-    this.$$dispatch('rule/fetch');
+    this.ctx.dispatch('rule/fetch');
   }
 
   handleStandardTableChange = (pagination, filtersArg, sorter) => {
@@ -379,7 +375,7 @@ class TableList extends React.Component {
       params.sorter = `${sorter.field}_${sorter.order}`;
     }
 
-    this.$$dispatch('rule/fetch', params);
+    this.ctx.dispatch('rule/fetch', params);
   };
 
   handleFormReset = () => {
@@ -388,7 +384,7 @@ class TableList extends React.Component {
     this.setState({
       formValues: {},
     });
-    this.$$dispatch('rule/fetch', {});
+    this.ctx.dispatch('rule/fetch', {});
   };
 
   toggleForm = () => {
@@ -404,7 +400,7 @@ class TableList extends React.Component {
     if (selectedRows.length === 0) return;
     switch (e.key) {
       case 'remove':
-        this.$$dispatch('rule/remove', {
+        this.ctx.dispatch('rule/remove', {
           payload: {
             key: selectedRows.map(row => row.key),
           },
@@ -443,7 +439,7 @@ class TableList extends React.Component {
         formValues: values,
       });
 
-      this.$$dispatch('rule/fetch', values);
+      this.ctx.dispatch('rule/fetch', values);
     });
   };
 
@@ -461,14 +457,14 @@ class TableList extends React.Component {
   };
 
   handleAdd = fields => {
-    this.$$dispatch('rule/add', { desc: fields.desc });
+    this.ctx.dispatch('rule/add', { desc: fields.desc });
 
     message.success('添加成功');
     this.handleModalVisible();
   };
 
   handleUpdate = fields => {
-    this.$$dispatch('rule/update', {
+    this.ctx.dispatch('rule/update', {
       name: fields.name,
       desc: fields.desc,
       key: fields.key,
@@ -601,7 +597,7 @@ class TableList extends React.Component {
     const {
       rule: { data },
       loading: ruleLoading,
-    } = this.$$connectedState;
+    } = this.ctx.connectedState;
     const loading = ruleLoading['rule/*'];
     const { selectedRows, modalVisible, updateModalVisible, stepFormValues } = this.state;
     const menu = (

@@ -3,7 +3,7 @@ import { Select, message, Drawer, List, Switch, Divider, Icon, Button, Alert, To
 import { formatMessage } from 'umi/locale';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 // import { connect } from 'dva';
-import { connectDumb } from 'concent';
+import { registerDumb } from 'concent';
 import omit from 'omit.js';
 import styles from './index.less';
 import ThemeColor from './ThemeColor';
@@ -252,7 +252,7 @@ const SettingDrawer = props => {
   );
 };
 
-export default connectDumb({
+export default registerDumb({
   state,
   setup,
   module: 'setting',

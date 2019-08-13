@@ -1,14 +1,14 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
 import { List, Card } from 'antd';
 import moment from 'moment';
 // import { connect } from 'dva';
-import { connectDumb } from 'concent';
+import { registerDumb } from 'concent';
 import AvatarList from '@/components/AvatarList';
 import stylesProjects from '../../List/Projects.less';
 
 const Projects = props => {
   console.log('%c@@@ Account/Center/Projects', 'color:green;border:1px solid green;');
-  const list = props.list;
+  const { list } = props;
   return (
     <List
       className={stylesProjects.coverCardList}
@@ -42,9 +42,9 @@ const Projects = props => {
       )}
     />
   );
-}
+};
 
-export default connectDumb({
+export default registerDumb({
   module: 'list',
-  mapProps: ctx => ({ list: ctx.moduleState.list })
+  mapProps: ctx => ({ list: ctx.moduleState.list }),
 })(Projects);

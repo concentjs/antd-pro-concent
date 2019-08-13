@@ -56,7 +56,7 @@ const validatorPhone = (rule, value, callback) => {
 //   currentUser: user.currentUser,
 // }))
 /** 出现多重装饰器时，使用属性代理模式 */
-@register('SettingsBaseView', { module: 'user', watchedKeys: ['currentUser'], isPropsProxy: true })
+@register({ module: 'user', watchedKeys: ['currentUser'], isPropsProxy: true }, 'SettingsBaseView')
 @Form.create()
 class BaseView extends Component {
   constructor(props, context) {
