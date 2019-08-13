@@ -19,17 +19,18 @@ const nullSlectItem = {
 //     isLoading,
 //   };
 // })
-@register('GeographicView', 'geographic')
+@register('geographic', 'GeographicView')
 class GeographicView extends PureComponent {
-  componentDidMount = () => {
-    this.$$dispatch('geographic/fetchProvince');
-  };
+  componentDidMount() {
+    this.ctx.dispatch('geographic/fetchProvince');
+  }
 
-  componentDidUpdate(props) {
-    const { value } = this.props;
+  componentDidUpdate() {
+    const { props } = this;
+    const { value } = props;
 
     if (!props.value && !!value && !!value.province) {
-      this.$$dispatch('geographic/fetchCity', value.province.key);
+      this.ctx.dispatch('geographic/fetchCity', value.province.key);
     }
   }
 
@@ -60,7 +61,7 @@ class GeographicView extends PureComponent {
 
   selectProvinceItem = item => {
     const { onChange } = this.props;
-    this.$$dispatch('geographic/fetchCity', item.key);
+    this.ctx.dispatch('geographic/fetchCity', item.key);
     onChange({
       province: item,
       city: nullSlectItem,

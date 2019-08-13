@@ -9,19 +9,19 @@ import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import styles from './CardList.less';
 
 @connect(
-  'CardList',
-  { list: '*', loading: ['list/*'] }
+  { list: '*', loading: ['list'] },
+  'CardList'
 )
 class CardList extends React.Component {
   componentDidMount() {
-    this.$$dispatch('list/fetch', { count: 8 });
+    this.ctx.dispatch('list/fetch', { count: 8 });
   }
 
   render() {
     const {
       list: { list },
       loading: listLoading,
-    } = this.$$connectedState;
+    } = this.ctx.connectedState;
     const loading = listLoading['list/*'];
 
     const content = (

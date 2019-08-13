@@ -12,7 +12,7 @@ const { Item } = Menu;
 // @connect(({ user }) => ({
 //   currentUser: user.currentUser,
 // }))
-@register('Info', { module: 'user', watchedKeys: ['currentUser'] })
+@register({ module: 'user', watchedKeys: ['currentUser'] }, 'Info')
 class Info extends Component {
   constructor(props) {
     super(props);

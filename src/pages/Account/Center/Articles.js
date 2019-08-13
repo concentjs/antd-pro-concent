@@ -1,13 +1,13 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
 import { List, Icon, Tag } from 'antd';
 // import { connect } from 'dva';
-import { connectDumb } from 'concent';
+import { registerDumb } from 'concent';
 import ArticleListContent from '@/components/ArticleListContent';
 import styles from './Articles.less';
 
 const Articles = props => {
   console.log('%c@@@ Account/Center/Articles', 'color:green;border:1px solid green;');
-  const list = props.list;
+  const { list } = props;
   const IconText = ({ type, text }) => (
     <span>
       <Icon type={type} style={{ marginRight: 8 }} />
@@ -49,9 +49,9 @@ const Articles = props => {
       )}
     />
   );
-}
+};
 
-export default connectDumb({
+export default registerDumb({
   module: 'list',
-  mapProps: ctx => ({ list: ctx.moduleState.list })
+  mapProps: ctx => ({ list: ctx.moduleState.list }),
 })(Articles);

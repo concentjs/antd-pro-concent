@@ -1,13 +1,13 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
 import { formatMessage } from 'umi/locale';
 import { Layout, message } from 'antd';
 import Animate from 'rc-animate';
-import { connect } from 'dva';
+// import { connect } from 'dva';
 import router from 'umi/router';
+import { registerDumb } from 'concent';
 import GlobalHeader from '@/components/GlobalHeader';
 import TopNavHeader from '@/components/TopNavHeader';
 import styles from './Header.less';
-import { connectDumb } from 'concent';
 
 const { Header } = Layout;
 
@@ -50,7 +50,7 @@ const setup = ctx => {
         ctx.settings.ticking = false;
       });
     }
-  }
+  };
 
   const getHeadWidth = () => {
     const { isMobile, collapsed } = ctx.props;
@@ -95,14 +95,24 @@ const setup = ctx => {
   };
 
   return {
-    handScroll, getHeadWidth, handleNoticeClear, handleMenuClick, handleNoticeVisibleChange
+    handScroll,
+    getHeadWidth,
+    handleNoticeClear,
+    handleMenuClick,
+    handleNoticeVisibleChange,
   };
 };
 
-const HeaderView = (props)=>{
-  const { 
-    isMobile, handleMenuCollapse, setting, visible,
-    getHeadWidth, handleNoticeClear, handleMenuClick, handleNoticeVisibleChange
+const HeaderView = props => {
+  const {
+    isMobile,
+    handleMenuCollapse,
+    setting,
+    visible,
+    getHeadWidth,
+    handleNoticeClear,
+    handleMenuClick,
+    handleNoticeVisibleChange,
   } = props;
 
   const { navTheme, layout, fixedHeader } = setting;
@@ -121,14 +131,14 @@ const HeaderView = (props)=>{
           {...props}
         />
       ) : (
-          <GlobalHeader
-            onCollapse={handleMenuCollapse}
-            onNoticeClear={handleNoticeClear}
-            onMenuClick={handleMenuClick}
-            onNoticeVisibleChange={handleNoticeVisibleChange}
-            {...props}
-          />
-        )}
+        <GlobalHeader
+          onCollapse={handleMenuCollapse}
+          onNoticeClear={handleNoticeClear}
+          onMenuClick={handleMenuClick}
+          onNoticeVisibleChange={handleNoticeVisibleChange}
+          {...props}
+        />
+      )}
     </Header>
   ) : null;
   return (
@@ -136,25 +146,41 @@ const HeaderView = (props)=>{
       {HeaderDom}
     </Animate>
   );
-}
+};
 
-const mapProps = ctx=>{
+const mapProps = ctx => {
   const { setting, user, loading } = ctx.connectedState;
-  const currentUser = user.currentUser;
+  const { currentUser } = user;
   const fetchingMoreNotices = loading['$$global/fetchMoreNotices'];
   const fetchingNotices = loading['$$global/fetchNotices'];
 
   const { collapsed, loadedAllNotices, notices } = ctx.moduleState;
-  const visible = ctx.state.visible;
+  const { visible } = ctx.state;
 
   return {
-    visible, currentUser, fetchingMoreNotices, fetchingNotices, setting,
-    collapsed, loadedAllNotices, notices, 
-    dispatch:ctx.dispatch, ...ctx.settings, ...ctx.props, ...ctx.reducer.$$global
+    visible,
+    currentUser,
+    fetchingMoreNotices,
+    fetchingNotices,
+    setting,
+    collapsed,
+    loadedAllNotices,
+    notices,
+    dispatch: ctx.dispatch,
+    ...ctx.settings,
+    ...ctx.props,
+    ...ctx.reducer.$$global,
   };
-}
+};
 
-export default connectDumb({
-  state, setup, mapProps, module: '$$global',
-  connect: { user: ['currentUser'], setting: '*', loading: ['$$global/fetchMoreNotices', '$$global/fetchNotices'] }
+export default registerDumb({
+  state,
+  setup,
+  mapProps,
+  module: '$$global',
+  connect: {
+    user: ['currentUser'],
+    setting: '*',
+    loading: ['$$global/fetchMoreNotices', '$$global/fetchNotices'],
+  },
 })(HeaderView);

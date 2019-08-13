@@ -46,26 +46,32 @@ const links = [
 //   projectLoading: loading.effects['project/fetchNotice'],
 //   activitiesLoading: loading.effects['activities/fetchList'],
 // }))
-@connect('Workplace', {
-  user: '*', project: '*', activities: '*', chart: '*',
-  loading: ['user/fetchCurrent', 'project/fetchNotice', 'activities/fetchList']
-})
+@connect(
+  {
+    user: '*',
+    project: '*',
+    activities: '*',
+    chart: '*',
+    loading: ['user/fetchCurrent', 'project/fetchNotice', 'activities/fetchList'],
+  },
+  'Workplace'
+)
 class Workplace extends PureComponent {
   componentDidMount() {
-    this.$$dispatch('user/fetchCurrent');
-    this.$$dispatch('project/fetchNotice');
-    this.$$dispatch('activities/fetchList');
-    this.$$dispatch('chart/fetch');
+    this.ctx.dispatch('user/fetchCurrent');
+    this.ctx.dispatch('project/fetchNotice');
+    this.ctx.dispatch('activities/fetchList');
+    this.ctx.dispatch('chart/fetch');
   }
 
   componentWillUnmount() {
-    this.$$dispatch('chart/clear');
+    this.ctx.dispatch('chart/clear');
   }
 
   renderActivities() {
     const {
       activities: { list },
-    } = this.$$connectedState;
+    } = this.ctx.connectedState;
     return list.map(item => {
       const events = item.template.split(/@\{([^{}]*)\}/gi).map(key => {
         if (item[key]) {
@@ -105,11 +111,11 @@ class Workplace extends PureComponent {
       project: { notice },
       chart: { radarData },
       loading,
-    } = this.$$connectedState;
+    } = this.ctx.connectedState;
     const currentUserLoading = loading['user/fetchCurrent'];
     const projectLoading = loading['project/fetchNotice'];
     const activitiesLoading = loading['activities/fetchList'];
-    console.log('====>>>> ',currentUserLoading, radarData.length);
+    console.log('====>>>> ', currentUserLoading, radarData.length);
 
     const pageHeaderContent =
       currentUser && Object.keys(currentUser).length ? (
@@ -150,11 +156,7 @@ class Workplace extends PureComponent {
     );
 
     return (
-      <PageHeaderWrapper
-        loading={false}
-        content={pageHeaderContent}
-        extraContent={extraContent}
-      >
+      <PageHeaderWrapper loading={false} content={pageHeaderContent} extraContent={extraContent}>
         <Row gutter={24}>
           <Col xl={16} lg={24} md={24} sm={24} xs={24}>
             <Card

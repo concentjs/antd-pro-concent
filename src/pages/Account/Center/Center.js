@@ -16,12 +16,12 @@ import styles from './Center.less';
 //   projectLoading: loading.effects['project/fetchNotice'],
 // }))
 @connect(
-  'AccountCenter',
   {
     loading: ['list/fetch', 'user/fetchCurrent', 'project/fetchNotice'],
     user: ['currentUser'],
     project: '*',
-  }
+  },
+  'AccountCenter'
 )
 class Center extends PureComponent {
   state = {
@@ -31,9 +31,9 @@ class Center extends PureComponent {
   };
 
   componentDidMount() {
-    this.$$dispatch('user/fetchCurrent');
-    this.$$dispatch('list/fetch', { count: 8 });
-    this.$$dispatch('project/fetchNotice');
+    this.ctx.dispatch('user/fetchCurrent');
+    this.ctx.dispatch('list/fetch', { count: 8 });
+    this.ctx.dispatch('project/fetchNotice');
   }
 
   onTabChange = key => {
@@ -100,7 +100,7 @@ class Center extends PureComponent {
       loading,
       project: { notice },
       user: { currentUser },
-    } = this.$$connectedState;
+    } = this.ctx.connectedState;
     const {
       'list/fetch': listLoading,
       'user/fetchCurrent': currentUserLoading,

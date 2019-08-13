@@ -4,7 +4,7 @@ import DocumentTitle from 'react-document-title';
 import isEqual from 'lodash/isEqual';
 import memoizeOne from 'memoize-one';
 // import { connect } from 'dva';
-import { connectDumb } from 'concent';
+import { registerDumb } from 'concent';
 import { createHistoryProxy } from 'react-router-concent';
 import { ConcentWebDevTool } from 'concent-middleware-web-devtool';
 import { ContainerQuery } from 'react-container-query';
@@ -255,7 +255,7 @@ const BasicLayout = props => {
   );
 };
 
-export default connectDumb({
+export default registerDumb({
   setup,
   mapProps,
   connect: { $$global: ['collapsed'], setting: '*', menu: ['menuData', 'breadcrumbNameMap'] },
