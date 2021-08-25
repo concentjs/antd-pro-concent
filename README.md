@@ -1,5 +1,8 @@
 <h1 align="center">Ant Design Pro Concent</h1>
 
+## Warning
+此库不再维护，推荐移步了解：https://tnfe.github.io/tntweb-admin/
+
 ## Enjoy [concent](https://github.com/concentjs/concent)🥺🥺🥺
 你的star将是我最大的精神鼓励，[欢迎star](https://github.com/concentjs/concent)
 
